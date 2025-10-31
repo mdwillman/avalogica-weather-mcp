@@ -62,7 +62,7 @@ export const getForecastTool = {
         .join("\n");
 
       return {
-        content: [{ type: "text", text: summary }],
+        content: [{ type: "text", text: summary + "\n\n[served by avalogica-weather-mcp]" }],
         isError: false,
       };
     } catch (err: any) {
