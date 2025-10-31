@@ -1,47 +1,47 @@
 {
-  "name": "@windsornguyen/brave-search-mcp",
+  "name": "avalogica-weather-mcp",
   "version": "0.1.0",
-  "description": "A Model Context Protocol server for web and local search using the Brave Search API",
+  "description": "Avalogica Weather MCP server for delivering Open-Meteo forecasts using the Model Context Protocol (MCP).",
   "private": false,
   "type": "module",
   "bin": {
-    "brave-search-mcp": "./dist/index.js"
+    "avalogica-weather": "./dist/index.js"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('dist/index.js', '755')\"",
-    "start": "node dist/index.js --port 3002",
-    "dev:stdio": "tsx src/index.ts",
-    "dev:shttp": "tsx src/index.ts --port 3002",
-    "prepare": "bun run build",
+    "start": "node dist/index.js --port 8080",
+    "dev:stdio": "tsx src/index.ts --stdio",
+    "dev:shttp": "tsx src/index.ts --port 8080",
+    "prepare": "npm run build",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windsornguyen/brave-search-mcp.git"
+    "url": "https://github.com/mdwillman/avalogica-weather-mcp.git"
   },
   "keywords": [
     "mcp",
-    "brave-search",
-    "web-search",
-    "local-search",
-    "search-api"
+    "avalogica",
+    "weather",
+    "forecast",
+    "open-meteo"
   ],
   "author": {
-    "name": "Windsor Nguyen",
-    "url": "https://windsornguyen.com"
+    "name": "Marshall D. Willman",
+    "url": "https://github.com/mdwillman"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/windsornguyen/brave-search-mcp/issues"
+    "url": "https://github.com/mdwillman/avalogica-weather-mcp/issues"
   },
-  "homepage": "https://github.com/windsornguyen/brave-search-mcp#readme",
+  "homepage": "https://github.com/mdwillman/avalogica-weather-mcp#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.16.0",
-    "@playwright/test": "^1.54.2",
+    "@modelcontextprotocol/sdk": "^1.17.3",
     "axios": "^1.11.0",
     "dotenv": "^17.2.1"
   },

@@ -7,12 +7,12 @@ loadEnv();
 
 import { loadConfig } from './config.js';
 import { parseArgs } from './cli.js';
-import { BraveServer } from './server.js';
+import { createStandaloneServer } from './server.js';
 import { runStdioTransport, startHttpTransport } from './transport/index.js';
 
 /**
- * Main entry point for the Brave Search MCP Server
- * 
+ * Main entry point for the Avalogica Weather MCP Server
+ *
  * Transport selection logic:
  * 1. --stdio flag forces STDIO transport
  * 2. --port flag or PORT env var triggers HTTP transport
@@ -22,21 +22,21 @@ async function main() {
     try {
         const config = loadConfig();
         const cliOptions = parseArgs();
-        
+
         // Determine transport mode
         const shouldUseHttp = cliOptions.port || (process.env.PORT && !cliOptions.stdio);
         const port = cliOptions.port || config.port;
-        
+
         if (shouldUseHttp) {
             // HTTP transport for production/cloud deployment
             startHttpTransport({ ...config, port });
         } else {
             // STDIO transport for local development
-            const server = new BraveServer(config.apiKey);
-            await runStdioTransport(server.getServer());
+            const server = createStandaloneServer();
+            await runStdioTransport(server);
         }
     } catch (error) {
-        console.error("Fatal error running Brave Search server:", error);
+        console.error("Fatal error running Avalogica Weather server:", error);
         process.exit(1);
     }
 }

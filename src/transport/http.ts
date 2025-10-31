@@ -67,7 +67,8 @@ async function handleMcpRequest(
     }
 
     res.statusCode = 400;
-    res.end('Invalid request');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'Invalid request' }));
 }
 
 /**
@@ -83,19 +84,21 @@ async function createNewSession(
     res: ServerResponse,
     config: Config
 ): Promise<void> {
-    const serverInstance = createStandaloneServer(config.apiKey);
+    // ✅ no argument now
+    const serverInstance = createStandaloneServer();
+
     const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: () => randomUUID(),
         onsessioninitialized: (sessionId) => {
             sessions.set(sessionId, { transport, server: serverInstance });
-            console.log('New Brave Search session created:', sessionId);
+            console.log('[Weather MCP] New session created:', sessionId);
         }
     });
 
     transport.onclose = () => {
         if (transport.sessionId) {
             sessions.delete(transport.sessionId);
-            console.log('Brave Search session closed:', transport.sessionId);
+            console.log('[Weather MCP] Session closed:', transport.sessionId);
         }
     };
 
@@ -103,7 +106,7 @@ async function createNewSession(
         await serverInstance.connect(transport);
         await transport.handleRequest(req, res);
     } catch (error) {
-        console.error('Streamable HTTP connection error:', error);
+        console.error('[Weather MCP] Streamable HTTP connection error:', error);
         res.statusCode = 500;
         res.end('Internal server error');
     }
@@ -118,6 +121,8 @@ function handleHealthCheck(res: ServerResponse): void {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ 
         status: 'healthy', 
+        service: 'avalogica-weather-mcp',
+        version: '0.1.0',
         timestamp: new Date().toISOString() 
     }));
 }
@@ -142,13 +147,13 @@ function logServerStart(config: Config): void {
         ? `Port ${config.port}` 
         : `http://localhost:${config.port}`;
     
-    console.log(`Brave Search MCP Server listening on ${displayUrl}`);
+    console.log(`[Weather MCP] Server listening on ${displayUrl}`);
 
     if (!config.isProduction) {
         console.log('Put this in your client config:');
         console.log(JSON.stringify({
             "mcpServers": {
-                "brave-search": {
+                "avalogica-weather": {
                     "url": `http://localhost:${config.port}/mcp`
                 }
             }

@@ -5,31 +5,20 @@ import {
     ListToolsRequestSchema,
     McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { BraveClient } from './client.js';
-import {
-    webSearchToolDefinition,
-    localSearchToolDefinition,
-    handleWebSearchTool,
-    handleLocalSearchTool
-} from './tools/index.js';
+import { getForecastTool } from "./tools/index.js";
+import { GetForecastArgs } from "./types.js";
 
 /**
- * Main server class for Brave Search MCP integration
- * @class BraveServer
+ * Main server class for Avalogica Weather MCP integration
+ * @class WeatherServer
  */
-export class BraveServer {
-    private client: BraveClient;
+export class WeatherServer {
     private server: Server;
 
-    /**
-     * Creates a new BraveServer instance
-     * @param {string} apiKey - Brave API key for authentication
-     */
-    constructor(apiKey: string) {
-        this.client = new BraveClient(apiKey);
+    constructor() {
         this.server = new Server(
             {
-                name: 'brave-search',
+                name: 'avalogica-weather',
                 version: '0.1.0',
             },
             {
@@ -44,27 +33,41 @@ export class BraveServer {
     }
 
     /**
-     * Sets up MCP request handlers for tools
-     * @private
-     */
+ * Registers all MCP tool handlers for the Avalogica Weather MCP server.
+ * @private
+ */
     private setupHandlers(): void {
-        // List available tools
+        // ---- List Available Tools ----
         this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-            tools: [webSearchToolDefinition, localSearchToolDefinition],
+            tools: [getForecastTool.definition],
         }));
 
-        // Handle tool calls
+        // ---- Handle Tool Calls ----
         this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const { name, arguments: args } = request.params;
 
+            // Route tool calls by name
             switch (name) {
-                case 'brave_web_search':
-                    return handleWebSearchTool(this.client, args);
-                
-                case 'brave_local_search':
-                    return handleLocalSearchTool(this.client, args);
-                
+                case "get_forecast": {
+                    // Validate argument structure
+                    if (
+                        !args ||
+                        typeof args !== "object" ||
+                        typeof (args as any).latitude !== "number" ||
+                        typeof (args as any).longitude !== "number"
+                    ) {
+                        throw new McpError(
+                            ErrorCode.InvalidParams,
+                            "Invalid or missing arguments for get_forecast. Expected { latitude: number, longitude: number, days?: number }."
+                        );
+                    }
+
+                    // Safe, typed call to the forecast handler
+                    return await getForecastTool.handler(args as unknown as GetForecastArgs);
+                }
+
                 default:
+                    // Unknown tool requested
                     throw new McpError(
                         ErrorCode.MethodNotFound,
                         `Unknown tool: ${name}`
@@ -79,7 +82,7 @@ export class BraveServer {
      */
     private setupErrorHandling(): void {
         this.server.onerror = (error) => console.error('[MCP Error]', error);
-        
+
         process.on('SIGINT', async () => {
             await this.server.close();
             process.exit(0);
@@ -96,41 +99,50 @@ export class BraveServer {
 }
 
 /**
- * Factory function for creating standalone server instances
- * Used by HTTP transport for session-based connections
- * @param {string} apiKey - Brave API key for authentication
+ * Factory function for creating standalone Avalogica Weather MCP server instances.
+ * Used by HTTP transport for session-based connections.
  * @returns {Server} Configured MCP server instance
  */
-export function createStandaloneServer(apiKey: string): Server {
+export function createStandaloneServer(): Server {
     const server = new Server(
         {
-            name: "brave-search-discovery",
-            version: "0.1.0",
+            name: 'avalogica-weather-discovery',
+            version: '0.1.0',
         },
         {
             capabilities: {
                 tools: {},
             },
-        },
+        }
     );
 
-    const client = new BraveClient(apiKey);
-
-    // Set up handlers
+    // ---- List available tools ----
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
-        tools: [webSearchToolDefinition, localSearchToolDefinition],
+        tools: [getForecastTool.definition],
     }));
 
+    // ---- Handle tool calls ----
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { name, arguments: args } = request.params;
 
         switch (name) {
-            case 'brave_web_search':
-                return handleWebSearchTool(client, args);
-            
-            case 'brave_local_search':
-                return handleLocalSearchTool(client, args);
-            
+            case "get_forecast": {
+                // Validate arguments before invoking tool
+                if (
+                    !args ||
+                    typeof args !== "object" ||
+                    typeof (args as any).latitude !== "number" ||
+                    typeof (args as any).longitude !== "number"
+                ) {
+                    throw new McpError(
+                        ErrorCode.InvalidParams,
+                        "Invalid or missing arguments for get_forecast. Expected { latitude: number, longitude: number, days?: number }."
+                    );
+                }
+
+                return await getForecastTool.handler(args as unknown as GetForecastArgs);
+            }
+
             default:
                 throw new McpError(
                     ErrorCode.MethodNotFound,
