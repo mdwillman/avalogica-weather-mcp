@@ -22,3 +22,6 @@ coverage/
 
 # Ngrok config
 .ngrok2/
+
+# Python virtual environment
+.venv/
