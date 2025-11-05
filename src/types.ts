@@ -35,3 +35,31 @@ export interface GetForecastArgs {
   longitude: number;
   days?: number;
 }
+
+/**
+ * Supported arguments for the get_tech_update tool
+ */
+export interface TechUpdateArgs {
+  topic: string;
+}
+
+/**
+ * Citation structure returned by get_tech_update
+ */
+export interface TechUpdateCitation {
+  label: string;
+  url: string;
+}
+
+/**
+ * Structured result returned by get_tech_update
+ */
+export interface TechUpdateResult {
+  content: string;
+  citations: TechUpdateCitation[];
+  model: string;
+  createdAt: string;
+  topic: string;
+  title: string;
+  description: string;
+}

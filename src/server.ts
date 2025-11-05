@@ -5,8 +5,8 @@ import {
     ListToolsRequestSchema,
     McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getForecastTool } from "./tools/index.js";
-import { GetForecastArgs } from "./types.js";
+import { getForecastTool, getTechUpdateTool } from "./tools/index.js";
+import { GetForecastArgs, TechUpdateArgs } from "./types.js";
 
 /**
  * Main server class for Avalogica Weather MCP integration
@@ -39,7 +39,7 @@ export class WeatherServer {
     private setupHandlers(): void {
         // ---- List Available Tools ----
         this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-            tools: [getForecastTool.definition],
+            tools: [getForecastTool.definition, getTechUpdateTool.definition],
         }));
 
         // ---- Handle Tool Calls ----
@@ -64,6 +64,22 @@ export class WeatherServer {
 
                     // Safe, typed call to the forecast handler
                     return await getForecastTool.handler(args as unknown as GetForecastArgs);
+                }
+
+                case "get_tech_update": {
+                    if (
+                        !args ||
+                        typeof args !== "object" ||
+                        typeof (args as any).topic !== "string" ||
+                        !(args as any).topic.trim()
+                    ) {
+                        throw new McpError(
+                            ErrorCode.InvalidParams,
+                            "Invalid or missing arguments for get_tech_update. Expected { topic: string }."
+                        );
+                    }
+
+                    return await getTechUpdateTool.handler(args as unknown as TechUpdateArgs);
                 }
 
                 default:
@@ -118,7 +134,7 @@ export function createStandaloneServer(): Server {
 
     // ---- List available tools ----
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
-        tools: [getForecastTool.definition],
+        tools: [getForecastTool.definition, getTechUpdateTool.definition],
     }));
 
     // ---- Handle tool calls ----
@@ -141,6 +157,22 @@ export function createStandaloneServer(): Server {
                 }
 
                 return await getForecastTool.handler(args as unknown as GetForecastArgs);
+            }
+
+            case "get_tech_update": {
+                if (
+                    !args ||
+                    typeof args !== "object" ||
+                    typeof (args as any).topic !== "string" ||
+                    !(args as any).topic.trim()
+                ) {
+                    throw new McpError(
+                        ErrorCode.InvalidParams,
+                        "Invalid or missing arguments for get_tech_update. Expected { topic: string }."
+                    );
+                }
+
+                return await getTechUpdateTool.handler(args as unknown as TechUpdateArgs);
             }
 
             default:

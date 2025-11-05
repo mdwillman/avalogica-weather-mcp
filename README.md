@@ -1,36 +1,110 @@
-# Avalogica Weather MCP
+# Avalogica AI News MCP
 
 **Version:** 0.1.0  
-**Author:** Marshall D. Willman  
-**License:** MIT  
+**License:** MIT
 
-⚠️ **Note:** This is a **test MCP server** developed for evaluation and integration experiments.  
-It may be updated, refactored, or replaced in future versions as Avalogica’s production MCP architecture evolves.
-
-A lightweight [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server providing real-time and forecast weather data for AI applications and agents.
-
----
-
-## Overview
-
-The **Avalogica Weather MCP** enables clients to query localized weather forecasts by latitude and longitude.  
-It integrates easily with the Dedalus SDK, ChatGPT Atlas, or other MCP-compatible clients.
+The Avalogica AI News MCP server combines the original Avalogica weather forecasting tool with a new AI and technology news update tool. It follows the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) specification and works with Atlas, the Dedalus SDK, and other compatible clients.
 
 ---
 
 ## Features
 
-- Provides daily forecast data for up to 7 days.  
-- Returns minimum and maximum temperatures, optionally including precipitation and wind.  
-- Stateless and authentication-free — ideal for testing or open access integrations.  
-- Built on the official [@modelcontextprotocol/sdk](https://www.npmjs.com/package/@modelcontextprotocol/sdk).
+- ✅ **Weather forecasts** via the `get_forecast` tool (unchanged from the original project).
+- 🆕 **AI technology briefings** via the `get_tech_update` tool powered by OpenAI's Responses API with web search preview.
+- Dual transports (STDIO and HTTP) with a `/health` route for readiness checks.
+- TypeScript-first build pipeline with strict type checking.
+
+---
+
+## Prerequisites
+
+- Node.js 18 or later
+- An OpenAI API key with access to the Responses API (`OPENAI_API_KEY`).
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/mdwillman/avalogica-weather-mcp.git
-cd avalogica-weather-mcp
+git clone https://github.com/mdwillman/avalogica-ai-news-mcp.git
+cd avalogica-ai-news-mcp
 npm install
+```
+
+## Configuration
+
+Copy `.env.example` to `.env` and fill in any required values.
+
+```bash
+cp .env.example .env
+```
+
+```dotenv
+OPENAI_API_KEY=sk-...
+WEATHER_API_KEY=optional
+# PORT=3002
+```
+
+`WEATHER_API_KEY` is currently optional. `OPENAI_API_KEY` is required when calling `get_tech_update`.
+
+---
+
+## Build & Run
+
+```bash
 npm run build
+npm run start            # starts HTTP transport on port 8080 by default
+npm run dev:stdio        # run via STDIO (useful with the MCP Inspector)
+npm run dev:shttp        # HTTP transport with live TypeScript reloading
+```
+
+The HTTP server exposes:
+
+- `GET /health` → returns a JSON payload confirming readiness.
+- `POST /mcp` / Server-Sent Events under `/sse` for MCP clients.
+
+---
+
+## Tools
+
+### `get_forecast`
+- **Input:** `{ latitude: number, longitude: number, days?: number }`
+- **Output:** Plain-text daily high/low temperature summary.
+
+### `get_tech_update`
+- **Input:** `{ topic: string }`
+  - Supported topics: `newModels`, `aiProductUpdates`, `techResearch`, `polEthicsAndSafety`, `upcomingEvents`.
+- **Behavior:**
+  1. Validates the topic.
+  2. Calls OpenAI's Responses API (`model: gpt-4.1-2025-04-14`) with web search preview enabled.
+  3. Returns a JSON payload (stringified in MCP `text` content) containing:
+     - `content`: Narrative summary
+     - `citations`: Array of `{ label, url }`
+     - `model`, `createdAt`, `topic`, `title`, `description`
+
+#### Example `call_tool`
+
+```json
+{
+  "name": "get_tech_update",
+  "arguments": {
+    "topic": "newModels"
+  }
+}
+```
+
+The response body contains a JSON-formatted string with the structured result.
+
+---
+
+## Development Notes
+
+- The codebase remains ESM (`"type": "module"`).
+- `npm run build` compiles TypeScript to `dist/` and adjusts the CLI executable bit.
+- STDIO transport can be tested with the MCP Inspector: `npm run build && npm run inspector`.
+
+---
+
+## License
+
+MIT © Marshall D. Willman

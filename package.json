@@ -1,11 +1,11 @@
 {
-  "name": "avalogica-weather-mcp",
+  "name": "avalogica-ai-news-mcp",
   "version": "0.1.0",
-  "description": "Avalogica Weather MCP server for delivering Open-Meteo forecasts using the Model Context Protocol (MCP).",
+  "description": "Avalogica AI News MCP server delivering weather forecasts and AI technology updates via the Model Context Protocol (MCP).",
   "private": false,
   "type": "module",
   "bin": {
-    "avalogica-weather": "./dist/index.js"
+    "avalogica-ai-news": "./dist/index.js"
   },
   "files": ["dist"],
   "scripts": {
@@ -19,14 +19,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdwillman/avalogica-weather-mcp.git"
+    "url": "https://github.com/mdwillman/avalogica-ai-news-mcp.git"
   },
   "keywords": [
     "mcp",
     "avalogica",
     "weather",
     "forecast",
-    "open-meteo"
+    "open-meteo",
+    "ai",
+    "news"
   ],
   "author": {
     "name": "Marshall D. Willman",
@@ -34,9 +36,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mdwillman/avalogica-weather-mcp/issues"
+    "url": "https://github.com/mdwillman/avalogica-ai-news-mcp/issues"
   },
-  "homepage": "https://github.com/mdwillman/avalogica-weather-mcp#readme",
+  "homepage": "https://github.com/mdwillman/avalogica-ai-news-mcp#readme",
   "engines": {
     "node": ">=18"
   },
